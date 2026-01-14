@@ -1,3 +1,12 @@
+/*
+ * main.go / main source code of web-service-gin.
+ *
+ * Lori Kim / CS6650 / Northeastern University
+ * 
+ * Spr 2026 / Jan 11, 2026
+ *
+*/
+
 package main
 
 import (
@@ -26,17 +35,18 @@ func main() {
     router.GET("/albums", getAlbums)
     router.GET("/albums/:id", getAlbumByID)
     router.POST("/albums", postAlbums)
+    router.DELETE("/albums/:id", deleteAlbumByID)
 
     router.Run("localhost:8080")
 }
 
-// getAlbums responds with the list of all albums as JSON.
+// handler getAlbums responds with the list of all albums as JSON.
 func getAlbums(c *gin.Context) {
     c.IndentedJSON(http.StatusOK, albums)
 }
 
 
-// postAlbums adds an album from JSON received in the request body.
+// handler postAlbums adds an album from JSON received in the request body.
 func postAlbums(c *gin.Context) {
     var newAlbum album
 
@@ -51,7 +61,7 @@ func postAlbums(c *gin.Context) {
     c.IndentedJSON(http.StatusCreated, newAlbum)
 }
 
-// getAlbumByID locates the album whose ID value matches the id
+// handler getAlbumByID locates the album whose ID value matches the id
 // parameter sent by the client, then returns that album as a response.
 func getAlbumByID(c *gin.Context) {
     id := c.Param("id") // c - Context.Param
@@ -66,3 +76,41 @@ func getAlbumByID(c *gin.Context) {
     }
     c.IndentedJSON(http.StatusNotFound, gin.H{"message": "album not found"})
 }
+
+// handler deleteAlbumByID locates the album whose ID value matches the id
+// parameter sent by the client, then deletes that album from the slice.
+// https://www.geeksforgeeks.org/go-language/delete-elements-in-a-slice-in-golang/
+func deleteAlbumByID(c *gin.Context) {
+    id := c.Param("id") // c - Context.Param
+
+    i := 0
+    for _, a := range albums {
+        if a.ID == id {
+            albums = append(albums[:i], albums[i+1:]...)
+            c.IndentedJSON(http.StatusOK, albums)
+            return
+        }
+        i++
+    }
+    c.IndentedJSON(http.StatusNotFound, gin.H{"message": "album not found"})
+}
+
+/* https://notes.kodekloud.com/docs/Advanced-Golang/API-Development-Project/Demo-Delete-method */
+/*
+func deleteAlbumByID(c *gin.Context) {
+    if r.Method != http.MethodDelete {
+    http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+    return
+    }
+
+    id := r.URL.Query().Get("id")
+
+    _, err := db.Exec("DELETE FROM users WHERE id=$1", id)
+    if err != nil {
+    http.Error(w, "Database error", http.StatusInternalServerError)
+    return
+    }
+
+    w.Write([]byte("User deleted successfully"))
+}
+*/
